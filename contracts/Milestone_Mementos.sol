@@ -1,28 +1,36 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+//Upgradable contracts require upgradable type libraries
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "hardhat/console.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 
+//Library imports
 import "./libraries/Base64.sol";
 
-contract Milestone_Mementos is ERC721URIStorage {
-    using Counters for Counters.Counter;
-    Counters.Counter private _tokenID;
+contract Milestone_Mementos is Initializable, ERC721URIStorageUpgradeable, UUPSUpgradeable, OwnableUpgradeable {
+    //Creating counter for keeping track of IDs
+    using CountersUpgradeable for CountersUpgradeable.Counter;
+    CountersUpgradeable.Counter private _tokenID;
 
-    uint256 immutable maxSupply;
-
+    //Will be used to keep track of all the mementos each person owns
     mapping(address => uint256[]) public owner2Mementos;
 
     event mementoCreated(uint256 tokenID, address creator);
 
-    constructor(uint256 _initSupply) ERC721("Mementos", "MNTOS") {
-        console.log("Mementos deployed, Nolsy would be proud");
-        maxSupply = _initSupply;
+    function initialize() initializer public {
+        //console.log("Mementos deployed, Nolsy would be proud");
+        __ERC721_init("Mementos", "MMNTOS");
+        __Ownable_init();
+        __UUPSUpgradeable_init();
+
+        //Ensure the first NFT is ID 1
         _tokenID.increment();
-        console.log(_tokenID.current());
     }
 
     function getMementos() public view returns(uint256[] memory){
@@ -31,7 +39,9 @@ contract Milestone_Mementos is ERC721URIStorage {
     }
 
     function mintMemento(string memory _description, string memory _imageURI) external {
-        require(_tokenID.current() < maxSupply + 1, "Mementos are maxed out!");
+        //check for description length
+        //possible check for proper URI, maybe will have to be done through front end
+        //maybe make this ownable to ensure the contract isn't used by randoms
 
         uint256 newNFTID = _tokenID.current();
 
@@ -39,7 +49,7 @@ contract Milestone_Mementos is ERC721URIStorage {
             abi.encodePacked(
                 '{"name": "Milestone Mementos - #',
                 // We set the title of our NFT as the generated word.
-                Strings.toString(newNFTID),
+                StringsUpgradeable.toString(newNFTID),
                 '", "description": "', _description,'", "image": "', _imageURI,
                 '"}'
             )
@@ -55,5 +65,14 @@ contract Milestone_Mementos is ERC721URIStorage {
         console.log("Mint successful!");
 
         emit mementoCreated(newNFTID, msg.sender);
+    }
+
+    //ensure only the deployer of the contract can upgrade them
+    function _authorizeUpgrade(address) internal override onlyOwner {}
+}
+
+contract Milestone_Mementos_V2 is Milestone_Mementos {
+    function version() public pure returns(uint256){
+        return 2;
     }
 }

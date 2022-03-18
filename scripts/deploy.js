@@ -12,17 +12,12 @@ async function main() {
 
   console.log("Memento deployed to:", mementoContract.address);
 
-  for(i = 0; i < 2; i++){
-    console.log("Minting underway...")
-    let mintTx = await mementoContract.mintMemento(description, imgURI);
-    await mintTx.wait();
-    nftCount += 1;
+  console.log("Minting underway...")
+  let mintTx = await mementoContract.mintMemento(description, imgURI);
+  await mintTx.wait();
+  nftCount += 1;
 
-    mintTx = await mementoContract.tokenURI(nftCount);
-    console.log(mintTx);
-  }
-
-  mintTx = await mementoContract.getMementos();
+  mintTx = await mementoContract.tokenURI(nftCount);
   console.log(mintTx);
 }
 
