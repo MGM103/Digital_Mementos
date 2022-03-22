@@ -2,23 +2,21 @@ const {ethers, upgrades} = require("hardhat");
 
 async function main() {
   //NFT data
-  let nftCount = 0;
-  const description = "Congratulation for all your hard work & effort! You've been an absolute stud, enjoy some time off Vitalik."
-  const imgURI = "https://lh3.googleusercontent.com/Q4uXff5hD6T91FlaDiqZTpMu-kEgwx6IcUHXsWF_Moq5u6VOvfqKuIXN2_StL78LNiA1YW3e16vnrLq_zqvfOMtK7PLy9AcKGxWr=w600";
+  const title = "One small step for EY, one giant leap for DET";
+  const description = "Thank you for beginning DET on their journey and being such a great leader. We very much appreciate all your hardwork and effort. Best wishes for the future! 'Talent is cheaper than table salt. What separates the talented individual from the successful one is hard work' - Stephen King";
+  const imgURI = "ipfs://QmZKENpMCwN8HSF8wdsqJm8Z2eX5waT8c8oQBSJH2eF8N3";
   
   // We get the contract to deploy
   const mementoFactory = await ethers.getContractFactory("Milestone_Mementos");
   const mementoContract = await upgrades.deployProxy(mementoFactory, {kind: 'uups'});
+  await mementoContract.deployed();
 
   console.log("Memento deployed to:", mementoContract.address);
 
   console.log("Minting underway...")
-  let mintTx = await mementoContract.mintMemento(description, imgURI);
+  let mintTx = await mementoContract.mintMemento(title, description, imgURI);
   await mintTx.wait();
-  nftCount += 1;
-
-  mintTx = await mementoContract.tokenURI(nftCount);
-  console.log(mintTx);
+  console.log("Mint successfull!");
 }
 
 // We recommend this pattern to be able to use async/await everywhere
